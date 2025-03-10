@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadratic Equation Solver</title>
+</head>
+<body>
+    <h1>Quadratic Equation Solver</h1>
+    
+    <form id="quadratic-form">
+        <label for="option">Select Input Method:</label>
+        <select id="option" name="option" onchange="toggleInputs()">
+            <option value="hardcoded">Hardcoded</option>
+            <option value="single">Single Input</option>
+            <option value="file">File (coefficients.txt)</option>
+            <option value="multiple">Multiple Inputs</option>
+        </select><br><br>
+
+        <div id="single-input" style="display: none;">
+            <label for="a">Coefficient a:</label>
+            <input type="text" id="a" name="a"><br><br>
+            <label for="b">Coefficient b:</label>
+            <input type="text" id="b" name="b"><br><br>
+            <label for="c">Coefficient c:</label>
+            <input type="text" id="c" name="c"><br><br>
+        </div>
+
+        <button type="button" onclick="solveEquation()">Solve</button>
+    </form>
+    
+    <h2>Results</h2>
+    <div id="output"></div>
+    <div id="graphs"></div>
+
+    <script>
+        function toggleInputs() {
+            const option = document.getElementById('option').value;
+            document.getElementById('single-input').style.display = (option === 'single') ? 'block' : 'none';
+        }
+
+        function solveEquation() {
+            const option = document.getElementById('option').value;
+            let data = { option };
+
+            if (option === 'single') {
+                data.a = parseFloat(document.getElementById('a').value);
+                data.b = parseFloat(document.getElementById('b').value);
+                data.c = parseFloat(document.getElementById('c').value);
+            }
+
+            fetch('/solve', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                let outputHtml = '';
+                result.results.forEach(res => {
+                    outputHtml += `<p>${res.description}: Roots - ${res.roots.join(', ')}</p>`;
+                });
+                document.getElementById('output').innerHTML = outputHtml;
+
+                let graphHtml = '';
+                result.graphs.forEach(graph => {
+                    graphHtml += `<img src="data:image/png;base64,${graph}" alt="Quadratic Graph"><br>`;
+                });
+                document.getElementById('graphs').innerHTML = graphHtml;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
